@@ -162,6 +162,13 @@ export default function DebriefPage() {
           </div>
           <div className="flex flex-col items-center">
             <BalanceDial b={d.bayesian} />
+            <p className="mt-1 max-w-[16rem] text-center text-xs text-ink-faint">
+              {verdict === 'unclear'
+                ? "The needle shows your best-guess spot, but the shaded band is wide, so this run can't say for sure yet."
+                : verdict === 'balanced'
+                  ? 'The needle sits in the balanced middle.'
+                  : 'The needle leans, and the evidence is strong enough to call it.'}
+            </p>
           </div>
         </div>
         {/* Plain-language key: what the two ends of the dial mean. */}
@@ -169,13 +176,13 @@ export default function DebriefPage() {
           <div className="bg-paper-raised px-6 py-3">
             <p className="text-xs">
               <span className="font-semibold text-clay-700">Favoured</span>
-              <span className="text-ink-soft"> — names that studies show usually get the benefit of the doubt (in Singapore hiring: Chinese names, men, Western names, depending on the comparison).</span>
+              <span className="text-ink-soft">: the names that tend to get picked more often in real hiring studies. In Singapore that's usually Chinese names, men, or Western names, depending on the comparison.</span>
             </p>
           </div>
           <div className="bg-paper-raised px-6 py-3">
             <p className="text-xs">
               <span className="font-semibold text-teal-700">Overlooked</span>
-              <span className="text-ink-soft"> — the names on the other side of that same research: the ones more often passed over when everything else is equal.</span>
+              <span className="text-ink-soft">: the names on the other side of that research. They get passed over more often when everything else is equal.</span>
             </p>
           </div>
         </div>
@@ -185,21 +192,21 @@ export default function DebriefPage() {
         <StatChip
           label="Balanced zone"
           value={`${Math.round(d.bayesian.prob_in_rope * 100)}%`}
-          sub={`Chance your true tendency sits in the "no real preference" band. ${
+          sub={`How likely it is that you have no real preference either way. ${
             d.bayesian.prob_in_rope > d.bayesian.prior_prob_in_rope
-              ? `Up from ${Math.round(d.bayesian.prior_prob_in_rope * 100)}% — the starting point before any of your choices.`
+              ? `Up from ${Math.round(d.bayesian.prior_prob_in_rope * 100)}%, which was the starting point before you made any choices.`
               : `The starting point before any choices was ${Math.round(d.bayesian.prior_prob_in_rope * 100)}%.`
           }`}
         />
         <StatChip
-          label="Lean toward favoured"
-          value={`${Math.round(d.bayesian.prob_p_above_half * 100)}%`}
-          sub="Chance you tilt toward the favoured names at all. 50% is a coin-flip — no evidence either way."
+          label="Clear lean to favoured"
+          value={`${Math.round(d.bayesian.prob_p_above_60 * 100)}%`}
+          sub="How likely it is that you have a real, sizeable lean toward the favoured names (not just a tiny wobble). We only call it a lean when this passes 85%."
         />
         <StatChip
           label="Even match-ups"
           value={`${d.descriptive.overall.favoured}/${d.descriptive.overall.total}`}
-          sub="On the perfectly-tied calls, how many went to the favoured name. Only dead-even pairs count here."
+          sub="On the calls where both people were exactly equal, how many went to the favoured name. Only fully tied pairs count here."
         />
       </section>
 
@@ -262,9 +269,9 @@ function TimedSplitView({ split }: { split: TimedSplitOut | null }) {
   const diff = split.difference != null ? Math.round(split.difference * 100) : null;
 
   const REL: Record<string, { label: string; cls: string }> = {
-    firm: { label: 'Reasonably firm', cls: 'bg-balance-100 text-balance-700' },
-    tentative: { label: 'Tentative — small sample', cls: 'bg-amber-100 text-amber-700' },
-    too_thin: { label: 'Too thin to lean on', cls: 'bg-clay-100 text-clay-700' },
+    firm: { label: 'Fairly reliable', cls: 'bg-balance-100 text-balance-700' },
+    tentative: { label: 'Small sample, read with care', cls: 'bg-amber-100 text-amber-700' },
+    too_thin: { label: 'Too little data to trust', cls: 'bg-clay-100 text-clay-700' },
   };
   const rel = REL[split.reliability] ?? REL.too_thin;
 
@@ -280,8 +287,9 @@ function TimedSplitView({ split }: { split: TimedSplitOut | null }) {
         </span>
       </div>
       <p className="mt-1 text-sm text-ink-soft">
-        Two scenes ran on a 60-second timer. Research says we fall back on gut — where habits
-        live — when rushed, so a jump here is worth noticing.
+        Two scenes ran on a 60-second timer. When people are rushed, they tend to go with their
+        first instinct, which is where habits show up most. So it's worth checking whether you
+        picked the favoured names more often when you were under time pressure.
       </p>
 
       {/* Two rates as opposing bars */}
@@ -295,18 +303,19 @@ function TimedSplitView({ split }: { split: TimedSplitOut | null }) {
         <div className="mt-4 rounded-lg bg-paper-sunk px-4 py-3">
           {split.reliability === 'too_thin' ? (
             <p className="text-sm text-ink-soft">
-              On the surface your rate {diff > 0 ? 'rose' : diff < 0 ? 'fell' : 'held'}{' '}
+              Your rate {diff > 0 ? 'went up' : diff < 0 ? 'went down' : 'stayed the same'}{' '}
               {diff !== 0 && (
-                <strong className="font-semibold text-ink">{Math.abs(diff)} points</strong>
-              )}{' '}
-              under the clock — but with only {tn} timed and {un} untimed call{tn + un === 1 ? '' : 's'},
-              that's <strong className="font-semibold text-ink">one or two picks</strong>, not a real
-              pattern. Treat it as a hint to watch, not a finding.
+                <><strong className="font-semibold text-ink">{Math.abs(diff)} points</strong>{' '}</>
+              )}
+              under the clock. But with only {tn} timed and {un} untimed call{tn + un === 1 ? '' : 's'},
+              that comes down to{' '}
+              <strong className="font-semibold text-ink">one or two picks</strong>. That isn't
+              enough to call it a real pattern yet. Take it as something to watch, not a conclusion.
             </p>
           ) : (
             <>
               <p className="text-sm text-ink">
-                Under pressure you picked the favoured name{' '}
+                Under time pressure, you picked the favoured name{' '}
                 <strong className="font-semibold">
                   {diff > 0 ? `${diff} points more often` : diff < 0 ? `${Math.abs(diff)} points less often` : 'at the same rate'}
                 </strong>
@@ -314,13 +323,14 @@ function TimedSplitView({ split }: { split: TimedSplitOut | null }) {
               </p>
               {split.diff_ci_low != null && split.diff_ci_high != null && (
                 <p className="mt-1 text-xs text-ink-faint">
-                  Best estimate {diff > 0 ? '+' : ''}{diff}%, but the honest range runs{' '}
+                  The best single estimate is {diff > 0 ? '+' : ''}{diff}%, but the true figure
+                  could reasonably fall anywhere from{' '}
                   <span className="font-mono tabnum">
                     {Math.round(split.diff_ci_low * 100)}% to {Math.round(split.diff_ci_high * 100)}%
                   </span>
                   {split.diff_ci_low <= 0 && split.diff_ci_high >= 0
-                    ? ' — wide enough that "no real change" is still on the table. More runs would tighten it.'
-                    : ' — the whole range points the same way, which is a genuinely interesting signal.'}
+                    ? '. That range still includes zero, so "no real change" is possible. A few more runs would narrow it down.'
+                    : '. The whole range points the same way, which is a real signal worth noting.'}
                 </p>
               )}
             </>
@@ -356,9 +366,9 @@ function ByGroup({ descriptive }: { descriptive: DescriptiveOut }) {
       <p className="eyebrow">Where it showed up</p>
       <h2 className="mt-1 font-display text-lg text-ink">Broken down by comparison</h2>
       <p className="mt-1 text-sm text-ink-soft">
-        Each scene changed only one thing at a time and kept everything else the same — that's the
-        only way to know a choice was about that one thing. So a gender scene shows two people of the
-        same race; a race scene shows two people of the same gender.
+        Each scene changed only one thing at a time and kept everything else the same. That's the
+        only way to tell whether a choice was really about that one thing. So a gender scene shows
+        two people of the same race, and a race scene shows two people of the same gender.
       </p>
       <div className="mt-4 space-y-4">
         {descriptive.by_dimension.map((dim) => {
@@ -414,9 +424,9 @@ function Reveal({ reveal, ties }: { reveal: RevealItem[]; ties: number }) {
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-400">The reveal</p>
       <h2 className="mt-1 font-display text-lg text-paper">They were the same person</h2>
       <p className="mt-1 text-sm text-paper/70">
-        Every comparison was a matched pair — same experience, same wins, reworded so they didn't
-        look identical. Only the name changed.
-        {ties > 0 && ` You called ${ties} of them dead even.`}
+        Every comparison was a matched pair. Both people had the same experience and the same wins,
+        just reworded so they didn't look identical. The only thing that changed was the name.
+        {ties > 0 && ` You rated ${ties} of them exactly the same.`}
       </p>
       <ul className="mt-4 space-y-2">
         {shown.map((r, i) => (
@@ -454,35 +464,35 @@ function HowItWorks({ b }: { b: BayesianOut }) {
           <div>
             <p className="font-semibold text-ink">We start by assuming nothing.</p>
             <p className="mt-1">
-              Before you made a single choice, the model gave you the benefit of the doubt: a 50/50
-              starting point, no assumption that you lean any particular way.
+              Before you made a single choice, the model gave you the benefit of the doubt. It began
+              at a 50/50 starting point, with no assumption that you lean one way or the other.
             </p>
           </div>
           <div>
-            <p className="font-semibold text-ink">Each matched call nudges the estimate.</p>
+            <p className="font-semibold text-ink">Each matched call adjusts the estimate.</p>
             <p className="mt-1">
-              Every time two equally-qualified people differed only by name, your pick moved the
-              needle a little. A few scenes were tougher: the person with the usually-favoured name
-              was actually <em>less</em> qualified. Picking them there says more than a normal call,
-              so it counts for more.
+              Every time two equally qualified people differed only by name, your pick moved the
+              estimate a little. A few scenes were harder, because the person with the favoured name
+              was actually the <em>weaker</em> candidate. Picking that person says more than a normal
+              call, so it counts for more.
             </p>
           </div>
           <div>
-            <p className="font-semibold text-ink">The result is a range, not a verdict.</p>
+            <p className="font-semibold text-ink">The result is a range, not a single verdict.</p>
             <p className="mt-1">
-              A single run is still a small sample, so instead of one number we show a range of
-              what's plausible — the light band on the dial. Your most likely value is{' '}
+              One run is still a small sample, so instead of a single number we show a range of what's
+              likely. That's the light band on the dial. Your most likely value is{' '}
               <span className="font-mono text-ink tabnum">{Math.round(b.posterior_mean * 100)}%</span>{' '}
-              toward the favoured side, and the honest range runs{' '}
+              toward the favoured side, and the honest range runs from{' '}
               <span className="font-mono text-ink tabnum">
-                {Math.round(b.hdi_low * 100)}–{Math.round(b.hdi_high * 100)}%
+                {Math.round(b.hdi_low * 100)}% to {Math.round(b.hdi_high * 100)}%
               </span>. The balanced zone is the green stretch near the middle.
             </p>
           </div>
           <p className="rounded-lg bg-paper-sunk px-3 py-2 text-xs text-ink-faint">
-            For the curious: this is Bayesian inference (a logistic model fit with PyMC). The dial's
-            centre band is a region of practical equivalence; the light arc is the 95% highest-density
-            interval. More runs narrow it.
+            For anyone who wants the technical detail: this uses Bayesian inference, with a logistic
+            model fit in PyMC. The centre band on the dial is a region of practical equivalence, and
+            the light arc is the 95% highest-density interval. Doing more runs narrows it.
           </p>
         </div>
       )}

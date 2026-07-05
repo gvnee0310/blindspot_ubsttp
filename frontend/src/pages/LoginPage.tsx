@@ -47,9 +47,9 @@ export default function LoginPage() {
             You can't see your own blind spot.
           </h1>
           <p className="mt-4 text-paper/70">
-            That's what makes it a blind spot. Make a series of everyday calls — who to
-            interview, who to promote, how to rate someone's work — and see the pattern in
-            your choices that you can't see in the moment.
+            That's what makes it a blind spot. You'll make a series of everyday calls, like who to
+            interview, who to promote, and how to rate someone's work. Then you'll see a pattern in
+            your choices that's hard to notice in the moment.
           </p>
         </div>
         <p className="font-mono text-xs text-paper/40">
@@ -72,7 +72,7 @@ export default function LoginPage() {
           <p className="mt-1 text-sm text-ink-soft">
             {mode === 'login'
               ? 'Pick up where you left off.'
-              : 'Takes a few seconds — use anything you like.'}
+              : 'Takes a few seconds. Use anything you like.'}
           </p>
 
           <form onSubmit={submit} className="mt-8 space-y-4">

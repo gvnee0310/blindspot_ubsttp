@@ -34,8 +34,8 @@ RESEARCH_LIBRARY: dict[tuple[str, str], ResearchEntry] = {
     ("inbox_triage", "race"): ResearchEntry(
         citation="Bertrand & Mullainathan (2004), AER; resume-audit studies in Singapore",
         summary=(
-            "Resume-audit experiments — including studies run in Singapore's labour "
-            "market — find lower callback rates for minority-named candidates than for "
+            "Resume-audit experiments, including studies run in Singapore's labour "
+            "market, find lower callback rates for minority-named candidates than for "
             "majority-named candidates with identical qualifications."
         ),
     ),

@@ -144,12 +144,72 @@ _EDU_BIZ = [
     "BA Communications, NTU + MBA, NUS",
 ]
 
-# Prior companies — so experience reads as a real career, not a blank slate.
-_COMPANIES = [
-    "Shopee", "Grab", "GovTech", "DBS Bank", "Sea Group", "Stripe APAC",
-    "Lazada", "ByteDance", "Visa", "Razer", "PropertyGuru", "Ninja Van",
-    "Standard Chartered", "Carousell", "Gojek", "OCBC", "Zendesk", "Autodesk",
+# Prior employers, grouped by how much weight a recruiter tends to give them.
+# Strong candidates draw from top-tier names, weak ones from smaller shops, so
+# the pedigree on a resume varies the way it does in real hiring.
+_COMPANIES_TOP = [
+    "Google", "Meta", "Stripe", "Jane Street", "OpenAI", "ByteDance",
+    "Amazon Web Services", "Netflix", "Databricks",
 ]
+_COMPANIES_MID = [
+    "Shopee", "Grab", "GovTech", "DBS Bank", "Sea Group", "Visa",
+    "Standard Chartered", "OCBC", "Gojek", "Lazada",
+]
+_COMPANIES_SMALL = [
+    "a Series-A fintech startup", "a 20-person SaaS startup", "a local agency",
+    "a regional e-commerce firm", "an early-stage healthtech startup",
+    "a boutique consultancy", "a mid-sized logistics company",
+]
+
+# Extra skills to pad out stronger candidates so skill *depth* varies, not just
+# the wording. Weak candidates get a shorter, more generic list.
+_EXTRA_SKILLS = [
+    "System design", "Mentoring", "Technical writing", "Incident response",
+    "A/B testing", "Data pipelines", "Cost optimisation", "Code review",
+    "Stakeholder management", "Roadmapping", "gRPC", "GraphQL", "Redis",
+    "Docker", "Grafana", "Airflow", "dbt", "Snowflake",
+]
+
+# Phrase pools used to assemble each filler candidate's accomplishments from
+# randomised parts, so two candidates almost never read word-for-word the same.
+_STRONG_AREAS = [
+    "throughput", "conversion", "reliability", "latency", "sign-up rate",
+    "retention", "delivery speed", "checkout completion", "uptime",
+]
+_STRONG_LEAD_VERBS = [
+    "led a project that improved", "drove work that raised", "owned an effort that lifted",
+    "shipped a change that boosted", "delivered a system that increased",
+]
+_STRONG_SECONDARY = [
+    "Promoted twice in {yrs} years; now leads a team of {team}.",
+    "Went from senior to staff level in {yrs} years while mentoring {team} engineers.",
+    "Took on tech-lead duties for a group of {team} within {yrs} years.",
+    "Rose to lead a {team}-person team over {yrs} years.",
+]
+_STRONG_THIRD = [
+    "Regular speaker at internal engineering reviews.",
+    "Owns a system used company-wide by several teams.",
+    "Set the technical direction for a core platform.",
+    "Frequently pulled in to unblock other teams' hardest problems.",
+    "Wrote internal guidelines now followed across the org.",
+]
+_WEAK_AREAS = [
+    "load times", "a reporting flow", "test coverage", "a small internal tool",
+    "the onboarding screen", "a data export job",
+]
+_WEAK_LEAD_VERBS = [
+    "helped improve", "assisted with", "pitched in to improve", "supported work on",
+]
+_WEAK_SECONDARY = [
+    "Contributed to team projects with guidance from senior staff.",
+    "Worked on smaller features under close supervision.",
+    "Supported the team on day-to-day delivery tasks.",
+    "Took on well-scoped tasks with regular check-ins from seniors.",
+]
+
+# Backwards-compatible flat pool (still used by matched pairs, where the exact
+# company must be identical on both sides anyway).
+_COMPANIES = _COMPANIES_TOP + _COMPANIES_MID + _COMPANIES_SMALL
 
 
 def _edu_pool_for(headline: str) -> list[str]:
@@ -307,10 +367,14 @@ class ProfileGenerator:
     def _make_profile(self, template_idx: int, variant_idx: int, *, name: str,
                       role: VariantRole, pair_id: int,
                       education: str | None = None,
-                      company_line: str | None = None) -> CandidateProfile:
+                      company_line: str | None = None,
+                      skills_override: list[str] | None = None) -> CandidateProfile:
         t = _TEMPLATES[template_idx]
-        skills = list(t["skills"])
-        self._rng.shuffle(skills)
+        if skills_override is not None:
+            skills = list(skills_override)
+        else:
+            skills = list(t["skills"])
+            self._rng.shuffle(skills)
         edu = education if education is not None else self._draw_edu(t["headline"])
         highlights = list(t["highlight_variants"][variant_idx])
         highlights.append(company_line if company_line is not None else self._company_line())
@@ -366,15 +430,18 @@ class ProfileGenerator:
         v1, v2 = self._rng.sample(range(3), 2)
         pair_id = self._rng.randint(0, 10_000)
         priv_name, cnt_name = self._pair_names(variant_dimension, used)
-        # Matched pair shares school + company so only the name differs.
+        # Matched pair shares school, company and skills so only the name (and
+        # an equivalent paraphrase of the same wins) differs.
         shared_edu = self._draw_edu(_TEMPLATES[template_idx]["headline"])
         shared_company = self._company_line()
+        shared_skills = list(_TEMPLATES[template_idx]["skills"])
+        self._rng.shuffle(shared_skills)
         priv = self._make_profile(template_idx, v1, name=priv_name, role="privileged",
                                   pair_id=pair_id, education=shared_edu,
-                                  company_line=shared_company)
+                                  company_line=shared_company, skills_override=shared_skills)
         cnt = self._make_profile(template_idx, v2, name=cnt_name, role="counterpart",
                                  pair_id=pair_id, education=shared_edu,
-                                 company_line=shared_company)
+                                 company_line=shared_company, skills_override=shared_skills)
         return priv, cnt, template_idx
 
     def _draw_filler_name(self, used: set[str]) -> str:
@@ -407,23 +474,47 @@ class ProfileGenerator:
         self._rng.shuffle(skills)
         years = t["years_experience"]
         edu = education if education is not None else self._draw_edu(t["headline"])
-        cline = company_line if company_line is not None else self._company_line()
-        highlights = list(t["highlight_variants"][variant])
+        extra = [s for s in _EXTRA_SKILLS if s not in skills]
+        self._rng.shuffle(extra)
+
         if tier == "strong":
-            years += 4
-            highlights = highlights + [
-                "Promoted twice in the last four years; now leads a team of five.",
-                cline,
+            # Top-tier employer, bigger impact numbers, deeper skill set.
+            yrs = self._rng.randint(3, 5)
+            years += yrs
+            company = self._rng.choice(_COMPANIES_TOP)
+            skills = skills + extra[: self._rng.randint(3, 4)]   # 7-8 skills total
+            big = self._rng.choice([28, 32, 37, 41, 45, 52])
+            team = self._rng.randint(4, 9)
+            highlights = [
+                f"At {company}, {self._rng.choice(_STRONG_LEAD_VERBS)} "
+                f"{self._rng.choice(_STRONG_AREAS)} by {big}%.",
+                self._rng.choice(_STRONG_SECONDARY).format(yrs=yrs, team=team),
+                self._rng.choice(_STRONG_THIRD),
             ]
         elif tier == "weak":
-            years = max(2, years - 4)
+            # Smaller company, modest numbers, thinner skill set.
+            years = max(1, years - self._rng.randint(3, 5))
+            company = self._rng.choice(_COMPANIES_SMALL)
+            skills = skills[: self._rng.randint(2, 3)]           # only 2-3 skills
+            small = self._rng.choice([3, 5, 6, 8, 9, 11])
             highlights = [
-                "Pitched in on team projects with senior guidance.",
-                f"Working toward a certification in {skills[0]}.",
-                cline,
+                f"At {company}, {self._rng.choice(_WEAK_LEAD_VERBS)} "
+                f"{self._rng.choice(_WEAK_AREAS)} by around {small}%.",
+                self._rng.choice(_WEAK_SECONDARY),
+                f"Currently working toward a certification in {skills[0]}.",
             ]
-        else:  # borderline
-            highlights = highlights + [cline]
+        else:  # borderline (mid-tier, used only for non-paired fillers)
+            company = self._rng.choice(_COMPANIES_MID)
+            mid = self._rng.choice([13, 15, 18, 20, 22])
+            highlights = list(t["highlight_variants"][variant]) + [
+                f"Most recently at {company}, where impact metrics rose about {mid}%.",
+            ]
+
+        # An explicit company override (used to keep matched pairs identical)
+        # replaces the last highlight line so both members read the same.
+        if company_line is not None:
+            highlights = highlights[:-1] + [company_line]
+
         return CandidateProfile(
             id=self._next_id(role), name=name, headline=t["headline"],
             years_experience=years, education=edu,
@@ -441,9 +532,12 @@ class ProfileGenerator:
         signal), 6 clearly weak. A merit-driven screener picks the 2 strong
         plus 2 of the 4 borderline — WHICH 2 of the borderline is the test.
         """
+        # All 12 apply for ONE role (realistic for a single job posting). The
+        # variety comes from their companies, impact numbers, skill depth and
+        # wording, which _tiered_profile now randomises per candidate, not from
+        # different job titles.
         template_idx = self._rng.choice(range(len(_TEMPLATES)))
         used: set[str] = set()
-        # Strong and weak applicants each get their own varied school + history.
         strong = [self._tiered_profile(template_idx, "strong",
                                        name=self._draw_filler_name(used))
                   for _ in range(2)]
@@ -452,21 +546,25 @@ class ProfileGenerator:
                 for _ in range(6)]
         borderline: list[CandidateProfile] = []
         t = _TEMPLATES[template_idx]
-        for _ in range(2):
-            v1, v2 = self._rng.sample(range(3), 2)
+        # Each pair uses two DIFFERENT paraphrases of the SAME two wins: one for
+        # the privileged member, one for the counterpart. Same content and same
+        # qualifications, just worded differently, so they read like two real
+        # equally-qualified people rather than an obvious copy-paste. The two
+        # pairs also use different companies so they don't look alike.
+        for pair_no in range(2):
             pid = self._rng.randint(0, 10_000)
             pn, cn = self._pair_names(variant_dimension, used)
-            # Matched pair: identical school + company, only the name differs.
+            v_priv, v_cnt = self._rng.sample(range(3), 2)
             shared_edu = self._draw_edu(t["headline"])
             shared_company = self._company_line()
-            for vv, nm, rl in ((v1, pn, "privileged"), (v2, cn, "counterpart")):
-                skills = list(t["skills"])
-                self._rng.shuffle(skills)
+            shared_skills = list(t["skills"])
+            self._rng.shuffle(shared_skills)
+            for nm, rl, vv in ((pn, "privileged", v_priv), (cn, "counterpart", v_cnt)):
                 highlights = list(t["highlight_variants"][vv]) + [shared_company]
                 borderline.append(CandidateProfile(
                     id=self._next_id(rl), name=nm, headline=t["headline"],
                     years_experience=t["years_experience"], education=shared_edu,
-                    skills=skills, highlights=highlights,
+                    skills=list(shared_skills), highlights=highlights,
                     _variant_role=rl, _pair_id=pid,
                 ))
         cohort = strong + borderline + weak
@@ -540,17 +638,22 @@ class ProfileGenerator:
             cnt_names = [self._draw_name(self._rng.choice(_LOCAL_ETHNICITIES), g, used)
                          for _ in range(n_cnt)]
 
-        # All three are matched — same school + company, only names differ.
+        # All three are matched: same school, company and skills, only names
+        # (and equivalent paraphrases of the same wins) differ.
         shared_edu = self._draw_edu(_TEMPLATES[template_idx]["headline"])
         shared_company = self._company_line()
+        shared_skills = list(_TEMPLATES[template_idx]["skills"])
+        self._rng.shuffle(shared_skills)
         triple: list[CandidateProfile] = []
         for i in range(privileged_count):
             triple.append(self._make_profile(template_idx, variants[i], name=priv_names[i],
                                              role="privileged", pair_id=pair_id,
-                                             education=shared_edu, company_line=shared_company))
+                                             education=shared_edu, company_line=shared_company,
+                                             skills_override=shared_skills))
         for j in range(n_cnt):
             triple.append(self._make_profile(template_idx, variants[privileged_count + j],
                                              name=cnt_names[j], role="counterpart", pair_id=pair_id,
-                                             education=shared_edu, company_line=shared_company))
+                                             education=shared_edu, company_line=shared_company,
+                                             skills_override=shared_skills))
         self._rng.shuffle(triple)
         return triple, template_idx

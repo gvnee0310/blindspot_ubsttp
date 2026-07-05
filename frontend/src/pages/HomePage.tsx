@@ -63,12 +63,12 @@ export default function HomePage() {
       <section className="mb-10 max-w-2xl animate-rise">
         <p className="eyebrow">Choose a run</p>
         <h1 className="mt-2 font-display text-3xl leading-tight text-ink">
-          Ten quick calls. One honest mirror.
+          See how you actually decide
         </h1>
         <p className="mt-3 text-ink-soft">
-          Each run drops you into a manager's seat for about ten minutes. Decide the way you
-          actually would — the debrief at the end shows you the pattern, then reveals what was
-          really going on.
+          Each run puts you in a manager's seat for about ten minutes. Make the calls the way you
+          normally would. At the end, you'll see the pattern in your choices, and then find out
+          what was really being tested.
         </p>
       </section>
 
@@ -103,7 +103,7 @@ export default function HomePage() {
           <Dot /> Everyone you see is made up
         </span>
         <span className="flex items-center gap-2">
-          <Dot /> No score, no judgement — just a mirror
+          <Dot /> No score and no judgement, just a mirror
         </span>
         <span className="flex items-center gap-2">
           <Dot /> Your data stays yours

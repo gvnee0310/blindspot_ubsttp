@@ -92,7 +92,7 @@ export default function InboxTriage({ payload, onSubmit }: Props) {
       <StickyBar>
         <span className="text-sm text-ink-soft">
           {selected.size === payload.select_count
-            ? 'Looks good — lock it in.'
+            ? 'Looks good. Lock it in.'
             : `Choose ${payload.select_count - selected.size} more.`}
         </span>
         <Button onClick={submit} disabled={!canSubmit}>
@@ -133,7 +133,7 @@ export function SceneHeader({
             </svg>
           </span>
           <span className="text-xs font-bold uppercase tracking-[0.14em]">
-            Timed round — 60 seconds, decide fast
+            Timed round. 60 seconds, decide fast.
           </span>
         </div>
       )}

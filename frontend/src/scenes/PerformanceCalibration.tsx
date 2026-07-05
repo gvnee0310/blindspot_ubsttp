@@ -68,7 +68,7 @@ export default function PerformanceCalibration({ payload, onSubmit }: Props) {
 
       <StickyBar>
         <span className="text-sm text-ink-soft">
-          {allRated ? 'Both rated — continue when ready.' : 'Give each person a score.'}
+          {allRated ? 'Both rated. Continue when ready.' : 'Give each person a score.'}
         </span>
         <Button onClick={submit} disabled={!allRated}>
           Continue

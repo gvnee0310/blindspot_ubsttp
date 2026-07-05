@@ -46,7 +46,7 @@ export default function HistoryPage() {
 
       {sessions && sessions.length === 0 && (
         <div className="rounded-xl2 border border-dashed border-ink-line bg-paper-sunk p-10 text-center">
-          <p className="text-sm text-ink-soft">No runs yet — your first one will show up here.</p>
+          <p className="text-sm text-ink-soft">No runs yet. Your first one will show up here.</p>
           <Link to="/" className="mt-4 inline-block"><Button>Start a run</Button></Link>
         </div>
       )}

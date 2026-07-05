@@ -94,21 +94,21 @@ class ScenarioEngine:
         ("hiring", "inbox_triage"):
             "You're hiring a {role}. 12 applications, 4 interview slots. Pick your 4.",
         ("hiring", "promotion_ranking"):
-            "Final round for the {role} opening. Rank the 3 finalists — then say why your #1 wins.",
+            "Final round for the {role} opening. Rank the 3 finalists, then say why your #1 wins.",
         ("hiring", "performance_calibration"):
-            "Two interviewers sent write-ups on the {role} shortlist. Score each write-up 1–5.",
+            "Two interviewers sent write-ups on the {role} shortlist. Score each write-up 1 to 5.",
         ("promotion", "promotion_ranking"):
-            "One promotion slot on your {role} team. Rank the 3 candidates — then justify your #1.",
+            "One promotion slot on your {role} team. Rank the 3 candidates, then justify your #1.",
         ("promotion", "performance_calibration"):
-            "Promo-readiness check: rate these two {role}s from 1 (not ready) to 5 (ready now).",
+            "Promotion-readiness check. Rate these two {role}s from 1 (not ready) to 5 (ready now).",
         ("promotion", "inbox_triage"):
             "Leadership programme nominations close in 60 seconds. Pick 4 of these 12 {role}s.",
         ("review", "performance_calibration"):
-            "Mid-year review. Rate these two {role}s on their half-year, 1–5.",
+            "Mid-year review. Rate these two {role}s on their half-year, 1 to 5.",
         ("review", "promotion_ranking"):
-            "Bonus pool: stack-rank these three {role}s. A short note on your #1, please.",
+            "Bonus pool. Stack-rank these three {role}s, and add a short note on your #1.",
         ("review", "inbox_triage"):
-            "Excellence award — nominations due in 60 seconds. Pick 4 of these 12 {role}s.",
+            "Excellence award. Nominations close in 60 seconds. Pick 4 of these 12 {role}s.",
     }
 
     TRIAGE_SELECT = 4

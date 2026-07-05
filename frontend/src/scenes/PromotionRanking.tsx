@@ -71,7 +71,7 @@ export default function PromotionRanking({ payload, onSubmit }: Props) {
             Why {byId[order[0]]?.name.split(' ')[0]} first?
           </label>
           <p className="mt-1 text-xs text-ink-soft">
-            A sentence or two (at least 15 characters). This is just for your own reflection — it
+            A sentence or two (at least 15 characters). This is just for your own reflection. It
             isn't graded.
           </p>
           <textarea

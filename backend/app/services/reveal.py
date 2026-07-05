@@ -59,7 +59,7 @@ def build_reveal(scenarios: Sequence[Scenario], decisions: Sequence[Decision]) -
                 if pr is None or cr is None:
                     action = "Ratings incomplete."
                 elif pr == cr:
-                    action = f"You rated both {pr}/5 — identical."
+                    action = f"You rated both {pr}/5, exactly the same."
                 else:
                     hi, lo = (priv, cnt) if pr > cr else (cnt, priv)
                     action = (

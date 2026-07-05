@@ -59,10 +59,10 @@ def build_headline(bayes: BayesianPosterior) -> str:
     if bayes.n_observations == 0:
         return "We didn't get enough decisions to say anything this time."
     return {
-        "lean_favoured": "Your picks leaned toward the names that usually get the benefit of the doubt.",
-        "lean_overlooked": "Your picks leaned the other way — toward the names that usually get overlooked.",
+        "lean_favoured": "Your picks leaned toward the names that usually get picked more often.",
+        "lean_overlooked": "Your picks leaned the other way, toward the names that usually get overlooked.",
         "balanced": "You mostly went by the work, not the name. This run looks balanced.",
-        "unclear": "Too close to call this run — the choices don't clearly point either way.",
+        "unclear": "This run is too close to call. Your choices don't clearly point either way.",
     }[verdict]
 
 
@@ -111,8 +111,8 @@ def build_narrative(
     if descriptive.n_ties:
         points.append(
             f"You rated **{descriptive.n_ties} identical pair"
-            f"{'s' if descriptive.n_ties != 1 else ''}** exactly the same — the fair call when "
-            "two records match."
+            f"{'s' if descriptive.n_ties != 1 else ''}** exactly the same. That's the fair call "
+            "when two records match."
         )
 
     # 4. Verdict, stated plainly with the key number bolded.
@@ -120,13 +120,13 @@ def build_narrative(
     prior_pct = f"{bayes.prior_prob_in_rope:.0%}"
     if bayes.prob_in_rope - bayes.prior_prob_in_rope > 0.03:
         points.append(
-            f"Putting it together, the model now sees a **{rope_pct} chance** your choices are "
-            f"genuinely even-handed — up from **{prior_pct}** before you started. Your picks "
-            "moved the needle toward balance."
+            f"Putting it all together, the model now sees a **{rope_pct} chance** your choices "
+            f"are genuinely even-handed. That's up from **{prior_pct}** before you started, so "
+            "your picks moved things toward balance."
         )
     else:
         points.append(
-            f"Putting it together, the model sees a **{rope_pct} chance** your choices are "
+            f"Putting it all together, the model sees a **{rope_pct} chance** your choices are "
             f"genuinely even-handed, based on your **{bayes.n_observations} decisions**."
         )
 
@@ -147,14 +147,14 @@ def build_scene_summaries(
                 "scene_type": sc.scene_type,
                 "description": (
                     _scene_human_label(sc.scene_type)
-                    + (f" — {role}" if role else "")
+                    + (f": {role}" if role else "")
                     + f" ({_dimension_label(sc.variant_dimension)}"
                     + (", timed" if sc.timed else "")
                     + ")"
                 ),
                 "favoured_privileged": None if d is None else d.favoured_privileged,
                 "elapsed_ms": None if d is None else d.elapsed_ms,
-                "research_citation": f"{research.citation} — {research.summary}",
+                "research_citation": f"{research.citation}. {research.summary}",
             }
         )
     return out
