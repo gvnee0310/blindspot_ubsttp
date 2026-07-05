@@ -117,8 +117,3 @@ blindspot/
     └── architecture.md
 ```
 
-
-
-## License
-
-MIT — see [`LICENSE`](LICENSE).
