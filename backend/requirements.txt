@@ -8,10 +8,11 @@ python-jose[cryptography]==3.3.0
 bcrypt==4.2.0
 python-multipart==0.0.12
 faker==30.3.0
-numpy==1.26.4
+numpy>=1.26.4,<2.2
 scipy==1.14.1
 pymc==5.16.2
 arviz==0.20.0
+matplotlib>=3.7,<3.10
 redis==5.1.1
 
 # Dev
