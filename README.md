@@ -27,7 +27,7 @@ Tomorrow's Talent Program 2026.
 └───────────────────────┬───────────────────────────────────────┘
                         │ HTTPS / JSON
 ┌───────────────────────▼───────────────────────────────────────┐
-│  Backend: FastAPI (Python 3.12)                               │
+│  Backend: FastAPI (Python 3.11)                               │
 │  • Profile generator (Faker + custom variant controller)      │
 │  • Scenario engine                                            │
 │  • Bayesian analysis (Beta–Bernoulli posterior updates)       │
@@ -42,29 +42,12 @@ Tomorrow's Talent Program 2026.
 For the full architectural rationale, see
 [`docs/architecture.md`](docs/architecture.md).
 
----
 
-## Quick start (Docker)
-
-The fastest way to run the whole stack:
-
-```bash
-git clone <this-repo>
-cd blindspot
-cp .env.example .env
-docker compose up --build
-```
-
-The frontend will be served at `http://localhost:5173` and the API at
-`http://localhost:8000` (OpenAPI docs at `http://localhost:8000/docs`).
-
----
-
-## Local development (without Docker)
+## Local development
 
 ### Backend
 
-Requires Python 3.12+.
+Requires Python 3.11+.
 
 ```bash
 cd backend
@@ -108,7 +91,6 @@ cd frontend && npm test
 ```
 blindspot/
 ├── README.md                  ← you are here
-├── ROADMAP.md                 ← 10-week mentorship build plan
 ├── docker-compose.yml
 ├── .env.example
 ├── backend/
@@ -135,39 +117,7 @@ blindspot/
     └── architecture.md
 ```
 
----
 
-## Status
-
-This implementation covers **Weeks 1–6** of the 10-week mentorship roadmap.
-See [`ROADMAP.md`](ROADMAP.md) for the full mapping.
-
-**What works today:**
-
-- End-to-end session flow (Start → 3 scenes → debrief → History)
-- Synthetic candidate-profile generation with controlled demographic variation
-- All three scene types from the roadmap (Inbox Triage, Performance Calibration,
-  Promotion Ranking) fully implemented in both backend and frontend
-- **Descriptive analytics** (NumPy / SciPy):
-  - Counts, selection proportions, Wilson 95% confidence intervals
-  - Paired t-test on Performance Calibration ratings
-  - Per-scene bar chart with the 50% baseline marked
-- **Bayesian inference** (PyMC):
-  - Logistic-parameterised model fit by MCMC
-  - Posterior mean, 95% HDI, P(p > 0.5), P(p > 0.6)
-  - Sample-based density plot in the debrief dashboard
-- Session history page
-- Basic JWT auth
-
-**What's left for Weeks 7–10:**
-
-- Aggregate benchmark across users (Redis cache layer)
-- Hierarchical PyMC model with per-scene-type random effects
-- Admin dashboard for HR-level views
-- Cloud deployment + async MCMC
-- Final demo prep
-
----
 
 ## License
 
