@@ -1,0 +1,17 @@
+[project]
+name = "blindspot-backend"
+version = "0.1.0"
+description = "BlindSpot bias-reflection platform — API and analysis services"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "W", "UP"]
+ignore = ["E501"]  # handled by formatter
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
