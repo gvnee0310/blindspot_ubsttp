@@ -90,7 +90,7 @@ cd frontend && npm test
 
 ```
 blindspot/
-├── README.md                  ← you are here
+├── README.md                  
 ├── docker-compose.yml
 ├── .env.example
 ├── backend/
