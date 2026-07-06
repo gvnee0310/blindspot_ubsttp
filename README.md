@@ -15,7 +15,7 @@ Tomorrow's Talent Program 2026.
 
 ---
 
-## Architecture at a glance
+## Architecture
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
