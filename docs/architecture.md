@@ -2,7 +2,6 @@
 
 This document describes how BlindSpot is structured and the rationale behind
 the major design decisions. For the high-level pitch, see [`README.md`](../README.md).
-For status against the 10-week plan, see [`ROADMAP.md`](../ROADMAP.md).
 
 ## Three-tier overview
 
