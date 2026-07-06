@@ -1,5 +1,3 @@
-"""Authentication endpoints: register and login."""
-
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status

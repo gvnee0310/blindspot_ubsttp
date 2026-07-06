@@ -6,11 +6,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Runtime configuration.
-
-    All settings can be overridden via environment variables (case-insensitive)
-    or via a ``.env`` file in the working directory.
-    """
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

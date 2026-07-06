@@ -1,14 +1,3 @@
-"""Calibration guarantees for the verdict rule.
-
-The single most important property of this tool: a FAIR player must not be
-told they are biased. These tests encode that as a hard requirement, plus the
-complement (a clearly biased player IS flagged, in the right direction).
-
-They use the ROPE-based rule in narrative.classify_verdict, which declares a
-lean only when most of the posterior sits beyond the balanced zone (p>0.60 or
-p<0.40) rather than merely past 0.50.
-"""
-
 import random
 from types import SimpleNamespace
 

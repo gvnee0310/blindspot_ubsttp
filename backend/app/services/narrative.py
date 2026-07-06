@@ -1,10 +1,3 @@
-"""Narrative generator — short, plain-language debrief text.
-
-Rules learned from user testing: no jargon ("advantaged signal" is out),
-no wall of text, three honest verdicts (lean / balanced / can't tell yet),
-and every number gets one plain sentence before any statistics appear.
-"""
-
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -30,13 +23,6 @@ def _dimension_label(dim: str) -> str:
     }.get(dim, dim)
 
 
-# Verdict decision rule (ROPE-based, deliberately conservative)
-# ------------------------------------------------------------------
-# A "lean" is declared only when most of the posterior sits OUTSIDE the
-# balanced zone — i.e. p is not just above 0.5 but meaningfully past 0.60
-# (or below 0.40). Using the ROPE boundary instead of 0.5 makes the verdict
-# robust to small-sample noise: a fair player who happens to drift just past
-# 0.5 no longer trips a false "biased" verdict, because they won't clear 0.60.
 LEAN_EVIDENCE = 0.85   # need 85% of posterior mass beyond the balanced zone
 BALANCED_EVIDENCE = 0.50
 
@@ -72,12 +58,9 @@ def build_narrative(
     descriptive: DescriptiveSummary,
     bayes: BayesianPosterior,
 ) -> list[str]:
-    """Short, plain findings. Keywords and numbers are wrapped in **double
-    asterisks** so the UI can bold them; the text reads fine without markup too.
-    """
+    
     points: list[str] = []
 
-    # 1. The core count: equal-on-paper picks.
     if descriptive.overall.total > 0 and descriptive.overall.proportion is not None:
         fav = descriptive.overall.favoured
         tot = descriptive.overall.total
@@ -92,7 +75,7 @@ def build_narrative(
                 f"You picked the favoured name **{fav} of those {tot} times**."
             )
 
-    # 2. Conflict trials — the clearest evidence.
+    # Conflict trials
     if descriptive.n_conflict > 0:
         if descriptive.n_conflict_overrode_merit > 0:
             points.append(
@@ -107,7 +90,7 @@ def build_narrative(
                 "person **every time**. That's exactly what you'd want."
             )
 
-    # 3. Ties.
+    # Ties.
     if descriptive.n_ties:
         points.append(
             f"You rated **{descriptive.n_ties} identical pair"
@@ -115,7 +98,6 @@ def build_narrative(
             "when two records match."
         )
 
-    # 4. Verdict, stated plainly with the key number bolded.
     rope_pct = f"{bayes.prob_in_rope:.0%}"
     prior_pct = f"{bayes.prior_prob_in_rope:.0%}"
     if bayes.prob_in_rope - bayes.prior_prob_in_rope > 0.03:

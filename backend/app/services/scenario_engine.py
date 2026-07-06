@@ -1,35 +1,9 @@
-"""Scenario engine — builds role-coherent, context-flavoured sessions.
-
-Design (v2, after user testing)
--------------------------------
-1. Every scene names the ROLE ("Senior Data Scientist"), because real managers
-   never screen candidates for an unnamed job.
-2. Triage is realistic: 12 applicants for ONE role with a merit gradient —
-   2 clearly strong, 4 borderline, 6 clearly weak. A merit-driven screener
-   takes the 2 strong plus 2 of the 4 borderline. The borderline picks are the
-   test: those four are two matched pairs, equal in substance, differing only
-   in the demographic signal.
-3. Calibration and ranking scenes include **conflict trials**: sometimes one
-   candidate carries a small, visible merit edge (+1 year, one extra
-   accomplishment). When the edge sits on the minority-signal candidate and
-   the manager still picks the majority-signal one, that is strong evidence.
-   Statistically, the edge enters as a base-rate shift: an unbiased evaluator
-   is assumed to follow a visible edge ~75% of the time (MERIT_FOLLOW_RATE),
-   so a conflict trial has null base rate 0.25 rather than 0.5.
-4. The three contexts share mechanics but differ in scene mix and framing:
-   Hiring = screening + finalist rankings; Promotion = promotion cases;
-   Review = rating-heavy with a stack-rank and an awards shortlist.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 from app.services.profile_generator import ProfileGenerator, VariantDimension
 
-# An unbiased evaluator follows a visible merit edge with this probability.
-# This is a design calibration constant (documented, adjustable), not an
-# estimate; making it a hierarchically estimated parameter is future work.
 MERIT_FOLLOW_RATE = 0.75
 
 
@@ -43,13 +17,6 @@ class ScenePlan:
 
 
 class ScenarioEngine:
-    # (scene_type, variant_dimension, timed) per context. Framing text is
-    # looked up per (context, scene_type).
-    # 10 scenes per context — enough matched decisions for the analysis to
-    # actually reach a conclusion rather than always landing on "too close to
-    # call". Two of the ten are timed, spread apart (scenes 4 and 8), so time
-    # pressure is measured more than once. Every context still rotates through
-    # all three difference types (gender, race, nationality).
     _CONTEXT_PLANS: dict[str, list[tuple[str, VariantDimension, bool]]] = {
         "hiring": [
             ("inbox_triage", "gender", False),
@@ -89,7 +56,7 @@ class ScenarioEngine:
         ],
     }
 
-    # Short, human framing per (context, scene_type). {role} is filled in.
+
     _FRAMING: dict[tuple[str, str], str] = {
         ("hiring", "inbox_triage"):
             "You're hiring a {role}. 12 applications, 4 interview slots. Pick your 4.",
@@ -219,8 +186,7 @@ class ScenarioEngine:
         if self._generator._rng.random() < 2 / 3:
             edge_holder = self._generator._rng.choice(triple)
             self._generator.apply_merit_edge(edge_holder)
-        # Unbiased chooser: follow the edge with MERIT_FOLLOW_RATE, else pick
-        # uniformly among the other two.
+        # follow the edge with MERIT_FOLLOW_RATE, else pick uniformly among the other two.
         if edge_holder is not None:
             e_a = 1 if edge_holder._variant_role == "privileged" else 0
             base_rate = (MERIT_FOLLOW_RATE * e_a

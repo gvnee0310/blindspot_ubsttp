@@ -1,45 +1,3 @@
-"""Analysis service: descriptive statistics (NumPy/SciPy) + Bayesian inference (PyMC).
-
-Statistical model (corrected)
------------------------------
-The estimand is a single bias parameter on the log-odds scale:
-
-    theta ~ Normal(0, 1)                    # NEUTRAL prior, centred on p = 0.5
-    p     = sigmoid(theta)                  # matched-pair choice probability
-
-``p`` is the probability that, offered a qualification-matched pair, the
-manager advances the candidate carrying the historically advantaged signal.
-
-Observations enter through likelihoods that respect each scene's structure:
-
-- **Inbox Triage** — the COUNT of advantaged picks among the manager's
-  selections is modelled as Binomial(n_selected, p). This keeps balanced
-  shortlists informative: picking 2-of-4 advantaged pulls the posterior
-  TOWARD 0.5 instead of being discarded. (Approximation note: picks are
-  sampled without replacement from a 6/6 pool, so trials are not perfectly
-  independent; with 4 picks from 12 the Binomial approximation is mild and
-  conservative.)
-
-- **Performance Calibration** — "rated the advantaged candidate higher" is a
-  Bernoulli(p) trial. Exact ties carry no directional information under this
-  likelihood and are reported separately rather than silently dropped.
-
-- **Promotion Ranking** — with k advantaged among 3 matched candidates, a
-  bias-free manager tops an advantaged candidate with probability b = k/3,
-  NOT 0.5. The likelihood is Bernoulli(q) with
-
-      q = b·omega / (b·omega + (1 - b)),   omega = exp(theta)
-
-  i.e. a Bradley–Terry-style choice with the bias acting as an odds
-  multiplier. When b = 0.5 this reduces exactly to sigmoid(theta).
-
-Why a NEUTRAL prior: this posterior is an assessment of an individual. A
-prior tilted by population research would tell a manager with zero data that
-they are probably biased — statistically defensible for a population, ethically
-indefensible for a person. Research findings inform the narrative context, not
-the individual prior.
-"""
-
 from __future__ import annotations
 
 import math
@@ -58,13 +16,12 @@ _PYMC_CHAINS = 2
 
 
 # =============================================================================
-# Observation extraction — raw decisions → model-ready observations
+# Observation extraction 
 # =============================================================================
 
 
 @dataclass
 class Observations:
-    """Structured observations for the model, grouped by likelihood type."""
 
     binom_k: list[int] = field(default_factory=list)   # triage: majority-signal picks
     binom_n: list[int] = field(default_factory=list)   # triage: total matched picks
@@ -150,7 +107,7 @@ def extract_observations(
 
 
 # =============================================================================
-# Descriptive analytics (Week 4)
+# Descriptive analytics 
 # =============================================================================
 
 
@@ -173,10 +130,10 @@ class ProportionSummary:
 @dataclass
 class SceneTypeBreakdown:
     scene_type: str
-    n_decisions: int        # trials, not scenes
+    n_decisions: int        
     n_favoured: int
     n_against: int
-    n_ambiguous: int        # calibration ties
+    n_ambiguous: int        
     proportion: ProportionSummary
     expected_rate: float | None = None  # null base rate, where it isn't 0.5
 
@@ -194,21 +151,12 @@ class PairedComparison:
 
 @dataclass
 class TimedSplit:
-    """Untimed vs timed comparison — cognitive load is known to amplify
-    reliance on stereotype-based judgement, so a gap here is itself a finding.
-
-    We report not just the two rates but the *difference* between them with a
-    confidence interval, plus a plain-language reliability level that scales
-    with sample size. This lets the UI always show the finding while being
-    honest about how much to trust it, instead of hiding small samples.
-    """
-
     untimed: ProportionSummary
     timed: ProportionSummary
     difference: float | None          # timed rate minus untimed rate
     diff_ci_low: float | None         # 95% CI on that difference
     diff_ci_high: float | None
-    reliability: str                  # 'firm' | 'tentative' | 'too_thin'
+    reliability: str                  
 
     @classmethod
     def from_summaries(
@@ -242,9 +190,9 @@ class TimedSplit:
 class DimensionBreakdown:
     """Plain-language per-dimension tallies for the debrief."""
 
-    dimension: str          # 'gender' | 'race' | 'nationality'
-    group_a: str            # plain label for the majority-signal group
-    group_b: str            # plain label for the minority-signal group
+    dimension: str          
+    group_a: str            # label for the majority-signal group
+    group_b: str            # label for the minority-signal group
     n_favoured_a: int
     n_trials: int
 
@@ -284,10 +232,6 @@ def compute_descriptive_summary(
 ) -> DescriptiveSummary:
     obs = extract_observations(scenarios, decisions)
 
-    # Overall pooled proportion uses only trials whose null is 0.5 (triage
-    # counts + calibration comparisons). Ranking has an asymmetric base rate,
-    # so pooling it into a raw proportion would mislead; it gets its own row
-    # with the expected rate displayed alongside.
     pair_fav = sum(obs.binom_k) + sum(
         y for y, b in zip(obs.bern_y, obs.bern_base, strict=True) if b == 0.5
     )
@@ -323,9 +267,7 @@ def compute_descriptive_summary(
 
     paired = _compute_paired_ratings(scenarios, decisions)
 
-    # Timed vs untimed comparison. We build it whenever any timed matched
-    # decisions exist, and let the reliability tier (not a hard cutoff) signal
-    # how much to trust it.
+    # Timed vs untimed comparison
     timed_split = None
     ut_k = sum(k for k, t in zip(obs.binom_k, obs.binom_timed, strict=True) if not t)
     ut_n = sum(n for n, t in zip(obs.binom_n, obs.binom_timed, strict=True) if not t)
@@ -337,7 +279,6 @@ def compute_descriptive_summary(
             timed=ProportionSummary.from_counts(ti_k, ti_n),
         )
 
-    # Per-dimension plain-language tallies (all trials, any base rate).
     dim_fav: dict[str, int] = {}
     dim_n: dict[str, int] = {}
     for k, n, d in zip(obs.binom_k, obs.binom_n, obs.binom_dim, strict=True):
@@ -400,14 +341,9 @@ def _compute_paired_ratings(
 
 
 # =============================================================================
-# Bayesian inference (Week 5)
+# Bayesian inference 
 # =============================================================================
 
-
-# Region of Practical Equivalence: p within ±0.10 of 0.5 is treated as
-# "practically balanced". The posterior mass inside this region is the model's
-# formal route to concluding FAIRNESS — without it, a tool like this can only
-# ever accumulate evidence of bias, never of balance.
 ROPE_LOW = 0.40
 ROPE_HIGH = 0.60
 
@@ -419,9 +355,9 @@ class BayesianPosterior:
     hdi_high: float
     prob_p_above_half: float
     prob_p_above_60: float
-    prob_p_below_40: float       # P(p < 0.40): meaningful lean toward the overlooked side
-    prob_in_rope: float          # P(0.40 < p < 0.60): evidence of practical balance
-    prior_prob_in_rope: float    # same mass under the prior — the comparison point
+    prob_p_below_40: float       # P(p < 0.40): lean toward the overlooked side
+    prob_in_rope: float          # P(0.40 < p < 0.60):  balance
+    prior_prob_in_rope: float    # same mass under the prior
     rope_low: float
     rope_high: float
     n_observations: int
@@ -456,8 +392,7 @@ def compute_bayesian_posterior(
 
         if bern_y.size:
             # Base-rate correction as a logit offset: q = b·e^θ/(b·e^θ + 1−b)
-            # is algebraically identical to sigmoid(θ + logit(b)), which is
-            # numerically stabler and compiles cleanly.
+
             logit_b = np.log(bern_b / (1.0 - bern_b))
             q = pm.math.sigmoid(theta + logit_b)
             pm.Bernoulli("y_choice", p=q, observed=bern_y)
@@ -471,9 +406,7 @@ def compute_bayesian_posterior(
     p_samples = idata.posterior["p"].values.flatten()
     hdi_low, hdi_high = _hdi(p_samples, credible_mass=0.95)
 
-    # Prior ROPE mass under theta ~ Normal(0, 1): p in (L, H) <=> theta in
-    # (logit L, logit H). This is the baseline the posterior mass is compared
-    # against — "did the data move belief toward balance?"
+    # Prior ROPE mass under theta ~ Normal(0, 1): p in (L, H) <=> theta in (logit L, logit H). This is the baseline the posterior mass is compared against 
     prior_rope = float(
         stats.norm.cdf(np.log(ROPE_HIGH / (1 - ROPE_HIGH)))
         - stats.norm.cdf(np.log(ROPE_LOW / (1 - ROPE_LOW)))

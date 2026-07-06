@@ -1,9 +1,4 @@
-"""Tests for the corrected descriptive + Bayesian analysis.
-
-The regression tests here encode the statistical fixes:
-- balanced shortlists are informative (pull toward 0.5), not discarded
-- ranking uses the correct asymmetric base rate, not 0.5
-- the prior is neutral (no data → posterior mean ≈ 0.5)
+"""Tests for descriptive + Bayesian analysis
 """
 
 from types import SimpleNamespace

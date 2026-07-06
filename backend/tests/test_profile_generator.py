@@ -1,6 +1,6 @@
-"""Tests for the Singapore-context matched-pair profile generator.
+"""Tests for the matched-pair profile generator.
 
-The critical validity property: within any pair, EXACTLY ONE signal varies.
+Within any pair, EXACTLY ONE signal varies.
 Race pairs hold gender constant; gender pairs hold ethnicity constant;
 nationality pairs hold gender constant.
 """
@@ -117,5 +117,5 @@ def test_role_cohort_has_diverse_education_but_equal_within_pairs():
         a, b = members
         assert a.education == b.education
         assert a.years_experience == b.years_experience
-        # Company line (last highlight) must match too.
+        # Company line must match too.
         assert a.highlights[-1] == b.highlights[-1]

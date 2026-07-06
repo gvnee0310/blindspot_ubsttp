@@ -1,15 +1,3 @@
-"""Post-session reveal — unmask the matched pairs.
-
-The reveal is the pedagogical payoff of the whole simulation: after the
-session is over (and only then), the manager sees exactly which candidates
-were qualification-matched, which names carried which signal, and what they
-chose. It converts an abstract posterior into a concrete "these two resumes
-said the same thing — here is what you did with them" moment.
-
-Exposing this only at debrief time means it cannot be used to game the
-session itself.
-"""
-
 from __future__ import annotations
 
 from collections.abc import Sequence

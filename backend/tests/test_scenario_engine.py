@@ -1,4 +1,4 @@
-"""Tests for the v2 scenario engine — role-coherent, conflict-trial design."""
+"""Tests for the scenario engine """
 
 from app.services.scenario_engine import MERIT_FOLLOW_RATE, ScenarioEngine
 
