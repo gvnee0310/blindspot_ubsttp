@@ -1,8 +1,7 @@
 # BlindSpot
 
 > A decision simulation platform for unconscious bias reflection.
->
-> *Making the invisible visible — one decision at a time.*
+
 
 BlindSpot lets managers experience, measure, and reflect on their own
 unconscious biases through realistic hiring, promotion, and performance-review
